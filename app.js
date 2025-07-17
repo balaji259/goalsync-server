@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const authRoutes = require('./routes/authRouter');
+const authRouter = require('./routes/authRouter');
+const groupRouter = require('./routes/groupRouter');
 const connectDB = require('./db/db');
 
 const app = express();
@@ -9,7 +10,9 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRouter);
+app.use('/api/groups', groupRouter);
+
 
 // Connect DB and start server...
 connectDB();
