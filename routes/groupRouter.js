@@ -9,5 +9,7 @@ router.post('/join', authMiddleware, groupController.joinGroup);
 router.get('/pending-requests', authMiddleware, groupController.getPendingRequests);
 router.post('/handle-request', authMiddleware, groupController.handleJoinRequest);
 router.get('/all', authMiddleware, groupController.getAllGroups);
+router.get('/:groupId', authMiddleware, groupController.getGroupById);
+
 
 module.exports = router;

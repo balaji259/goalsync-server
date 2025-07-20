@@ -104,5 +104,24 @@ const getAllGroups = async (req, res) => {
   }
 };
 
+const getGroupById = async (req, res) => {
+  const { groupId } = req.params;
 
-module.exports = {createGroup, getUserGroups, joinGroup, getPendingRequests, handleJoinRequest, getAllGroups}
+  try {
+    const group = await Group.findById(groupId)
+      .populate('createdBy', 'name email') 
+      .populate('members', 'name email');  
+
+    if (!group) {
+      return res.status(404).json({ message: 'Group not found' });
+    }
+
+    res.status(200).json(group);
+  } catch (error) {
+    console.error('Error fetching group:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+module.exports = {createGroup, getUserGroups, joinGroup, getPendingRequests, handleJoinRequest, getAllGroups, getGroupById}

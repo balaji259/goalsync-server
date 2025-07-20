@@ -19,7 +19,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Password is required'],
     minlength: 6
-  }
+  },
+  goals: [{ type: mongoose.Schema.Types.ObjectId, ref: "Goal" }]
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

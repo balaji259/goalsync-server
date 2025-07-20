@@ -7,8 +7,12 @@ const authMiddleware = async (req, res, next) => {
 
   const authHeader = req.headers.authorization;
 
+  console.log("authheader");
+  console.log(authHeader);
+
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.log('Authorization token missing or malformed')
     return res.status(401).json({ message: 'Authorization token missing or malformed' });
   }
 
@@ -20,9 +24,11 @@ const authMiddleware = async (req, res, next) => {
 
     req.user = await User.findById(decoded.id).select('-password'); 
     if (!req.user) {
+      console.log('User not found' )
       return res.status(401).json({ message: 'User not found' });
     }
-
+  
+    console.log("finieshed middle ware")
     next(); 
   } catch (err) {
     return res.status(401).json({ message: 'Invalid or expired token' });
