@@ -1,5 +1,6 @@
 const Group = require('../models/Group');
 const JoinRequest = require('../models/JoinRequest');
+const mongoose = require("mongoose");
 
 const createGroup = async (req, res) => {
   const { name, type, joinCode, maxMembers } = req.body;
@@ -22,7 +23,15 @@ const getUserGroups = async (req, res) => {
 };
 
 const joinGroup = async (req, res) => {
+
+  try{
+
   const { groupId, joinCode } = req.body;
+     
+  if (!mongoose.Types.ObjectId.isValid(groupId)) {
+      return res.status(400).json({ message: 'Invalid group id' });
+    }
+
   const group = await Group.findById(groupId);
 
   if (!group) return res.status(404).json({ message: 'Group not found' });
@@ -34,7 +43,7 @@ const joinGroup = async (req, res) => {
   if (group.type === 'public') {
     group.members.push(req.user._id);
     await group.save();
-    return res.json({ message: 'Joined group' });
+    return res.status(200).json({ message: 'Joined group' });
   }
 
   if (group.type === 'private') {
@@ -43,17 +52,24 @@ const joinGroup = async (req, res) => {
     }
     group.members.push(req.user._id);
     await group.save();
-    return res.json({ message: 'Joined group' });
+    return res.status(200).json({ message: 'Joined group' });
   }
 
   if (group.type === 'approval') {
     const existing = await JoinRequest.findOne({ group: groupId, user: req.user._id });
-    if (existing) return res.status(400).json({ message: 'Already requested' });
+    if (existing) return res.status(200).json({ message: 'Already requested' });
 
     const request = new JoinRequest({ group: groupId, user: req.user._id });
     await request.save();
-    return res.json({ message: 'Request sent' });
+    return res.status(201).json({ message: 'Request sent' });
   }
+
+  return res.status(400).json({ message: 'Unknown group type' });
+}catch(err){
+   console.error('joinGroup error:', err);
+    return res.status(500).json({ message: err.message });
+}
+
 };
 
 const getPendingRequests = async (req, res) => {
@@ -109,8 +125,21 @@ const getGroupById = async (req, res) => {
 
   try {
     const group = await Group.findById(groupId)
-      .populate('createdBy', 'name email') 
-      .populate('members', 'name email');  
+      .populate('createdBy', 'name email username')
+      .populate('members', 'name email username')
+      .populate({
+        path: 'goals',
+        populate: [
+          {
+            path: 'creator',
+            select: 'name email username',
+          },
+          {
+            path: 'progress.user', // This is the missing population
+            select: 'name email username',
+          }
+        ],
+      });
 
     if (!group) {
       return res.status(404).json({ message: 'Group not found' });
@@ -123,5 +152,32 @@ const getGroupById = async (req, res) => {
   }
 };
 
+const getGroupsToJoin = async (req, res) => {
+  console.log("in controller");
 
-module.exports = {createGroup, getUserGroups, joinGroup, getPendingRequests, handleJoinRequest, getAllGroups, getGroupById}
+  try {
+    const userId = req.user._id; // Current logged-in user's ID
+
+    console.log("userid");
+    console.log(userId);
+
+    // Fetch groups where the user is NOT already a member
+    const groups = await Group.find({
+      members: { $nin: [userId] }
+    })
+      .populate('createdBy', 'username email') // Only include specific fields
+      .populate('members', 'username email');  // Populate members too
+
+      console.log(groups);
+
+    res.status(200).json(groups);
+  } catch (error) {
+    console.error('Error fetching groups:', error);
+    res.status(500).json({ message: 'Failed to fetch groups', error });
+  }
+};
+
+
+
+
+module.exports = {createGroup, getUserGroups, joinGroup, getPendingRequests, handleJoinRequest, getAllGroups, getGroupById, getGroupsToJoin}
