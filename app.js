@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const authRouter = require('./routes/authRouter');
 const groupRouter = require('./routes/groupRouter');
 const goalRouter = require('./routes/goalRouter');
+const userRouter = require('./routes/userRouter');
 const connectDB = require('./db/db');
 
 const app = express();
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use('/api/auth', authRouter);
 app.use('/api/groups', groupRouter);
 app.use('/api/goals', goalRouter);
+app.use('/api/users', userRouter);
 
 
 // Connect DB and start server...

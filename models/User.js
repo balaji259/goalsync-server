@@ -20,7 +20,14 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Password is required'],
     minlength: 6
   },
-  goals: [{ type: mongoose.Schema.Types.ObjectId, ref: "Goal" }]
+  goals: [{ type: mongoose.Schema.Types.ObjectId, ref: "Goal" }],
+
+   profile: {
+    bio: { type: String, trim: true, maxlength: 200 },
+    avatar: { type: String }, 
+    interests: [{ type: String, trim: true }],
+    location: { type: String, trim: true }     
+  }
 
 }, { timestamps: true });
 
